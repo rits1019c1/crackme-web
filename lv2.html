@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><title>crackme lv2</title>
+<style>
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0b0f14;color:#9fe;font:16px/1.7 ui-monospace,Menlo,monospace}
+main{max-width:520px;padding:24px}h1{font-size:20px;margin:0 0 8px}small{color:#678}
+input,button{font:inherit;background:#121a22;color:#9fe;border:1px solid #345;padding:6px 10px}
+#r{margin-top:8px;min-height:1.7em}
+</style></head><body>
+<main id="app"><h1>crackme lv2</h1>
+<p>FLAGはソースに載ってない。実行時にだけ復元される。<br>取り出して、下に入れて「OK」を出せ。</p>
+<input id="i" size="34" placeholder="FLAG{...}"> <button id="b">check</button>
+<div id="r"></div>
+<small>ルール: curl+デコードでは出ない。ページを壊さずに取る(自前で再実装するのはアリ)</small></main>
+<script>
+(()=>{
+"use strict";
+const T=Function.prototype.toString;
+const fnv=s=>{let h=0x811c9dc5;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,0x01000193)}return h>>>0};
+const nat=f=>/\{\s*\[native code\]\s*\}\s*$/.test(T.call(f));
+let done=false;
+const bySize=()=>(outerWidth-innerWidth>160)||(outerHeight-innerHeight>160);
+const byDebugger=()=>{const t=performance.now();new Function("debugger")();return performance.now()-t>100};
+const trip=m=>{if(done)return;done=true;document.body.innerHTML='<p style="color:#f66;font:16px monospace;padding:24px">detected: '+m+'</p>';setTimeout(()=>location.replace("about:blank"),1500)};
+
+// 鍵 = 自分の守衛関数のソース + 見出しテキスト + ネイティブ関数が無傷か
+const P=[console.log,fetch,setInterval,atob,T,Object.defineProperty].some(f=>!nat(f))?1:0;
+const K=(fnv(T.call(bySize)+T.call(byDebugger)+T.call(trip))^fnv(document.querySelector("#app h1").textContent)^Math.imul(P,0x9e3779b9))>>>0;
+const dec=(b,k)=>{let s=(k|1)>>>0,o="";for(const c of atob(b)){s^=s<<13;s^=s>>>17;s^=s<<5;s>>>=0;o+=String.fromCharCode(c.charCodeAt(0)^(s&255))}return o};
+const F=dec("FsSL+5IdMCeMEqPMhrF3mEWAe+UKJ7pZCKsUFgL8bqo=",K);
+
+document.getElementById("b").onclick=()=>{
+  document.getElementById("r").textContent=document.getElementById("i").value===F?"OK  \u{1F389}":"NG";
+};
+
+addEventListener("contextmenu",e=>e.preventDefault());
+addEventListener("keydown",e=>{
+  const k=e.key.toLowerCase(),c=e.ctrlKey||e.metaKey;
+  if(e.key==="F12"||(c&&e.shiftKey&&"ijc".includes(k))||(c&&e.altKey&&"ijuc".includes(k))||(c&&k==="u")){
+    e.preventDefault();e.stopPropagation();
+  }
+},true);
+
+let open3=false;
+const el=new Image();
+Object.defineProperty(el,"id",{get(){open3=true;return "x"}});
+setInterval(()=>{
+  open3=false;console.log(el);console.clear();
+  if(bySize())trip("window size");
+  else if(open3)trip("console getter");
+  else if(byDebugger())trip("debugger timing");
+},500);
+})();
+</script></body></html>
