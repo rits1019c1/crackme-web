@@ -1,2 +1,3 @@
-このサイトのどこかに隠されたFLAGを取り出すゲームです。
-(模範解答)[answer.md]
+このサイトのどこかに隠されたFLAGを取り出すゲームです。/
+[模範解答lv1
+](https://github.com/rits1019c1/crackme-web/blob/main/answerlv1.md)
